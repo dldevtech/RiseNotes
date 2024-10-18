@@ -43,17 +43,7 @@ class InterfazRiseNotes:
         self.delButton = ttk.Button(self.window, text="Eliminar Tarea", command = self.delTask)
         self.delButton.pack(pady=5)
 
-        #Botón para eliminar la tarea
-        self.delButton = ttk.Button(self.window, text="Editar Tarea", command = self.editTask)
-        self.delButton.pack(pady=5)
 
-
-    #A continuación añadimos las funcionalidades de los elementos
-    
-    #Función para que taskField reconozca la tecla Enter
-    def enterPress(self, event):
-        """Función para agregar tarea al presionar Enter en taskField"""
-        self.addTask()
 
     #Función para agregar tarea
     def addTask(self):
