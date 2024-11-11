@@ -1,15 +1,16 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-from funcionalidades import GestionTareas
+from modeloRiseNotes import GestionTareas
 
 class InterfazRiseNotes:
-    def __init__(self, window):
+    def __init__(self, window, controlador):
         """Inicializa la interfaz gráfica""" #Usamos estas marcas de cara al documentar el propio código
         self.window = window
+        self.controlador = controlador #Referencia al controlador para poder manejar los eventos
         self.window.title("RiseNotes - Gestor de Tareas")
 
-        """Inicialización de la clase GestorTareas"""
-        self.taskManager = GestionTareas()
+        #"""Inicialización de la clase GestorTareas""" LO HEMOS QUITADO AL PASAR A MVC
+        #self.taskManager = GestionTareas()
 
         #Creamos una etiqueta de bienvenida
         self.label = ttk.Label(self.window, text="Bienvenido a Rise Notes", font= ("Times New Roman", 16))
@@ -27,7 +28,6 @@ class InterfazRiseNotes:
         #Entrada para la nueva actividad
         self.taskField = ttk.Entry(self.window, width=50)
         self.taskField.pack(pady=5)
-
         #Funcion para que la tecla Enter registre la tarea
         self.taskField.bind("<Return>", self.enterPress)
 
@@ -44,11 +44,15 @@ class InterfazRiseNotes:
         self.delButton.pack(pady=5)
 
         #Botón para eliminar la tarea
-        self.delButton = ttk.Button(self.window, text="Editar Tarea", command = self.editTask)
-        self.delButton.pack(pady=5)
+        self.editButton = ttk.Button(self.window, text="Editar Tarea", command = self.editTask)
+        self.editButton.pack(pady=5)
+
+        #Botón para completar tarea
+        self.completeButton = ttk.Button(self.window, text="Marcar como Completada", command=self.completeTask)
+        self.completeButton.pack(pady=5)
 
 
-    #A continuación añadimos las funcionalidades de los elementos
+    #FUNCIONALIDADES DE LOS ELEMENTOS VISUALES
     
     #Función para que taskField reconozca la tecla Enter
     def enterPress(self, event):
@@ -57,40 +61,54 @@ class InterfazRiseNotes:
 
     #Función para agregar tarea
     def addTask(self):
-        """Función para agregar una tarea nueva (vacía por ahora)"""
+        """Función para agregar una tarea nueva"""
         task = self.taskField.get()
         category = self.categoryVar.get() #Ampliación con la categoria
+        date = "2024-11-11" #De momento agregamos esto de forma manual hasta implementar funcionalidad
 
         if task and category:
-            #Agregar tarea al gestor
-            self.taskManager.addTask(f"[{category}]{task}")
-            #Mostrar tarea en la lista gráfica
-            self.taskListbox.insert(tk.END, f"[{category}]{task}")
-            #Limpiar el campo de texto para añadir nueva tarea
-            self.taskField.delete(0, tk.END)
+            #Agregar tarea a través de controlador
+            self.controlador.addTask(task, category, date)
+            self.taskField.delete(0, tk.END) #Limpiar el campo de texto para añadir nueva tarea
             self.categoryVar.set("")
-            print(f"Tarea agregada correctamente: {task}") #De momento solo muestra por consolan NO NECESARIO
+            print(f"Tarea agregada correctamente: {task}") #Solo muestra por consolan NO NECESARIO
         
         else:
             messagebox.showwarning("Advertencia", "Debes ingresar una tarea y seleccionar una categoría")
 
+    #FUNCIÓN PARA MOSTRAR TAREAS
+    def showTasks(self, tasks):
+        """Actualiza la lista de tareas mostrada con formato"""
+        self.taskListbox.delete(0, tk.END)
+
+        for task_id, task in tasks.items():
+
+            # Formatear la fecha, categoría, descripción y estado
+            estado = "[✔]" if task["estado"] == "completada" else "[ ]"
+            formattedTask = f"{task_id}: [{task['category']}] {task['task']} {estado}"
+
+            # Insertar la tarea formateada en la lista
+            self.taskListbox.insert(tk.END, formattedTask)
+
+
     #Función para eliminar una tarea
     def delTask(self):
         """Función para eliminar una tarea seleccionada"""
-        try:
-            #Obtener la tarea seleccionada
-            indexTask = self.taskListbox.curselection()[0]
-            selectedTask = self.taskListbox.get(indexTask)
+        #Obtener la tarea seleccionada
+        selectedIndex = self.taskListbox.curselection()
 
-            #Eliminar tarea de la lista interna y de la interfaz gráfica
-            self.taskManager.delTask(selectedTask)
-            self.taskListbox.delete(indexTask)
-        except IndexError:
-            print("No se ha seleccionado ninguna tarea.")
+        if selectedIndex:
+            selectedTask = self.taskListbox.get(selectedIndex)
+            task_id = selectedTask.split(":")[0]
+            self.controlador.delete(task_id)
+        else:
+            messagebox.showwarning("Advertencia", "Por favor, selecciona una tarea para eliminar")
+
 
 
     #Función para editar tarea junto con opción de boton cambiante a guardar
     def editTask(self):
+        """Función para editar la tarea seleccionada"""
         indexTask = self.taskListbox.curselection()
         if indexTask:
             selectedTaskIndex = indexTask[0]
@@ -110,25 +128,25 @@ class InterfazRiseNotes:
                 editedCategory = self.categoryVar.get()
 
                 if editedTask and editedCategory:
-
-                #Borrar la tarea original (con categoria) del gestor y agregar la editada
-                    self.taskManager.delTask(selectedTask) #borramos la tarea original
-                    self.taskManager.addTask(f"[{editedCategory}] {editedTask}")
-
-                #Actualizamos la lista visual: eliminamos la tarea original y añadimos la editada
-                self.taskListbox.delete(selectedTaskIndex)
-                self.taskListbox.insert(selectedTaskIndex, f"[{editedCategory}] {editedTask}")
-
-                #Limpiamos la entrada de texto y la categoria
-                self.taskField.delete(0, tk.END) #Borramos el campo de tareas
-                self.categoryVar.set("") #Cuando guardamos cambios vuelve la categoryVar blanca
-
-                #Restauramos el boton a su funcionalidad original
-                self.addButtom.config(text="Agregar tarea", command=self.addTask)
-                self.taskField.bind("<Return>", self.enterPress)
+                #Llamamos al controlador para actualizar la tarea
+                    self.controlador.editar(selectedTaskIndex, editedTask, editedCategory)
+                    self.addButtom.config(text="Agregar Tarea", command=self.addTask)
+                    self.taskField.delete(0, tk.END)
+                    self.categoryVar.set("")
 
             #cambiar el botón "Agregar tarea" por "Guardar cambios"
             self.addButtom.config(text="Guardar cambios", command=saveChange) #ese addTask tendra que ser sustituido cuando conectemos a db
             self.taskField.bind("<Return>",saveChange)
         else:
             messagebox.showwarning("Advertencia", "Por favor, selecciona una tarea para editar.")
+
+    #FUNCIÓN PARA MARCAR TAREA COMPLETADA
+    def completeTask(self):
+        """Función para establecer una tarea como completada"""
+        selected_index = self.taskListbox.curselection()
+        if selected_index:
+            selected_task = self.taskListbox.get(selected_index)
+            task_id = selected_task.split(":")[0]
+            self.controlador.completeTask(task_id)
+        else:
+            messagebox.showwarning("Advertencia", "Por favor, selecciona una tarea para marcar como completada")
