@@ -2,12 +2,18 @@ from modeloRiseNotes import GestionTareas  # Importa el modelo
 from vistaRiseNotes import InterfazRiseNotes  # Importa la vista
 
 class ControladorRiseNotes:
-    def __init__(self, vista, modelo):
+    def __init__(self, vista: InterfazRiseNotes, modelo: GestionTareas):
         """Inicializa el controlador"""
         self.vista = vista
         self.modelo = modelo
         self.vista.controlador = self
         self.actualizarVista()
+
+    def actualizarVista(self):
+        """Carga todas las tareas del modelo y las muestra en la vista"""
+        tasks = self.modelo.getAllTasks()
+        print("Tareas enviadas a la vista:", tasks)
+        self.vista.showTasks(tasks)
 
     def addTask(self, task, category, date):
         """Agrega una nueva tarea al modelo y actualiza la vista"""
@@ -38,7 +44,3 @@ class ControladorRiseNotes:
         self.vista.showTasks(tasks)
 
 
-    def actualizarVista(self):
-        """Carga todas las tareas del modelo y las muestra en la vista"""
-        tasks = self.modelo.getAllTasks()
-        self.vista.showTasks(tasks)

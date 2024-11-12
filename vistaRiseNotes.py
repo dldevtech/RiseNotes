@@ -79,6 +79,7 @@ class InterfazRiseNotes:
     #FUNCIÓN PARA MOSTRAR TAREAS
     def showTasks(self, tasks):
         """Actualiza la lista de tareas mostrada con formato"""
+        print("Tareas recibidas para mostrar en la vista:", tasks)  # Depuración
         self.taskListbox.delete(0, tk.END)
 
         for task_id, task in tasks.items():
