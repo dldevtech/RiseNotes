@@ -115,22 +115,27 @@ class InterfazRiseNotes:
             selectedTaskIndex = indexTask[0]
             selectedTask = self.taskListbox.get(selectedTaskIndex)
 
-            #Separar la categoria de la tarea
-            category, task = selectedTask.split("]", 1) #Este task es el que separamos de selected Task para obtener lo que selecciona el usuario en tarea y categoria
-            category = category[1:] #Quitamos el primer "]" para obtener la categoria 
+            #Separar la categoria y la descripcion ignorando el estado con función split
+            task_id, restoString = selectedTask.split(": ", 1)
+            category, restoString = restoString.split("] ", 1)
+            category = category[1:]
+            
+            #Separar la descripción de la tarea ignorando el estado
+            task = restoString.rsplit(" [", 1)[0] # Eliminamos el estado "[✔]" o "[ ]" rsplit para dividir desde la derecha
 
             #Insertar la tarea en el cuadro de texto para que el usuario la edite y la categoria
             self.taskField.delete(0, tk.END)
-            self.taskField.insert(0, task)
+            self.taskField.insert(0, task.strip()) #Strip nos asegura quitar espacios en blanco
             self.categoryVar.set(category) #Aqui seteamos categoryVar para que coincida con lo que se seleccionó
 
-            def saveChange(event=None):
+            #Función interna para guardar los cambios
+            def saveChange():
                 editedTask = self.taskField.get()
                 editedCategory = self.categoryVar.get()
 
                 if editedTask and editedCategory:
                 #Llamamos al controlador para actualizar la tarea
-                    self.controlador.editar(selectedTaskIndex, editedTask, editedCategory)
+                    self.controlador.editar(task_id, editedTask, editedCategory)
                     self.addButtom.config(text="Agregar Tarea", command=self.addTask)
                     self.taskField.delete(0, tk.END)
                     self.categoryVar.set("")

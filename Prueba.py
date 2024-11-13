@@ -1,61 +1,104 @@
-# Attempting to create and save the diagram in a different way to ensure downloadability.
-import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
+import tkinter as tk
+from tkinter import ttk
+from tkcalendar import Calendar  # Importamos el calendario
+import datetime
 
-# Create figure and axis for the ERD
-fig, ax = plt.subplots(figsize=(10, 8))
 
-# Function to create a table-like representation
-def draw_table(x, y, title, fields):
-    rect = mpatches.FancyBboxPatch((x, y), 3, 1.6, boxstyle="round,pad=0.1", linewidth=1.5, edgecolor="black", facecolor="#AED6F1")
-    ax.add_patch(rect)
-    plt.text(x + 1.5, y + 1.4, title, ha="center", va="top", fontsize=12, fontweight="bold")
-    for i, field in enumerate(fields):
-        plt.text(x + 0.1, y + 1.1 - i * 0.3, field, ha="left", va="center", fontsize=10)
+class App:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Gestión de Tareas por Día")
 
-# Draw each table for entities in the ERD
-draw_table(1, 6, "Usuarios", [
-    "ID_Usuario (PK)",
-    "Enfoque",
-    "Nivel",
-    "Fecha_Ultima_Actualización"
-])
+        # Fecha actual seleccionada
+        self.selectedDate = datetime.date.today()
 
-draw_table(6, 6, "Objetivos_Diarios", [
-    "ID_Objetivo (PK)",
-    "ID_Usuario (FK)",
-    "Categoría",
-    "Tareas_Requeridas",
-    "Dificultad"
-])
+        # Diccionario simulado para almacenar tareas por día
+        self.tasksByDate = {
+            "2024-11-12": ["Tarea 1: Leer", "Tarea 2: Escribir"],
+            "2024-11-13": ["Tarea 1: Correr", "Tarea 2: Cocinar"],
+            "2024-11-14": ["Tarea 1: Pintar"]
+        }
 
-draw_table(3.5, 2.5, "Progreso", [
-    "ID_Progreso (PK)",
-    "ID_Usuario (FK)",
-    "Fecha",
-    "Categoria",
-    "Tareas_Completadas",
-    "Porcentaje_Progreso"
-])
+        # Etiqueta para mostrar la fecha seleccionada
+        self.dateLabel = ttk.Label(self.root, text=f"Día seleccionado: {self.selectedDate}", font=("Arial", 12))
+        self.dateLabel.pack(pady=5)
 
-# Draw relationship arrows
-plt.arrow(3.4, 6.5, 2, 0, head_width=0.2, head_length=0.2, fc="black", ec="black")
-plt.text(4.4, 6.7, "1:N", ha="center", fontsize=10)
+        # Botones de navegación para cambiar de día
+        navFrame = ttk.Frame(self.root)
+        navFrame.pack(pady=5)
 
-plt.arrow(2.6, 6, 1.1, -2.6, head_width=0.2, head_length=0.2, fc="black", ec="black")
-plt.text(3.1, 4, "1:N", ha="center", fontsize=10)
+        self.prevDayButton = ttk.Button(navFrame, text="← Día anterior", command=self.prevDay)
+        self.prevDayButton.pack(side=tk.LEFT, padx=5)
 
-plt.arrow(7.4, 6, -1.2, -3, head_width=0.2, head_length=0.2, fc="black", ec="black")
-plt.text(6.3, 4, "1:N", ha="center", fontsize=10)
+        self.nextDayButton = ttk.Button(navFrame, text="Día siguiente →", command=self.nextDay)
+        self.nextDayButton.pack(side=tk.LEFT, padx=5)
 
-# Set plot limits and remove axes
-plt.xlim(0, 10)
-plt.ylim(0, 10)
-plt.axis('off')
+        # Botón para abrir el selector de fechas
+        self.selectDateButton = ttk.Button(self.root, text="Seleccionar fecha...", command=self.openCalendar)
+        self.selectDateButton.pack(pady=10)
 
-# Save the diagram as a PNG file
-file_path = "/mnt/data/RiseNotes_ERD_Final.png"
-plt.savefig(file_path, bbox_inches='tight')
-plt.close(fig)
+        # Listbox para mostrar tareas del día seleccionado
+        self.taskListbox = tk.Listbox(self.root, width=50, height=10)
+        self.taskListbox.pack(pady=10)
 
-file_path
+        # Inicializar el contenido del Listbox
+        self.updateListbox()
+
+    def prevDay(self):
+        """Retrocede un día y actualiza la vista"""
+        self.selectedDate -= datetime.timedelta(days=1)
+        self.dateLabel.config(text=f"Día seleccionado: {self.selectedDate}")
+        self.updateListbox()
+
+    def nextDay(self):
+        """Avanza un día y actualiza la vista"""
+        self.selectedDate += datetime.timedelta(days=1)
+        self.dateLabel.config(text=f"Día seleccionado: {self.selectedDate}")
+        self.updateListbox()
+
+    def updateListbox(self):
+        """Actualiza el contenido del Listbox según la fecha seleccionada"""
+        # Limpiar el Listbox
+        self.taskListbox.delete(0, tk.END)
+
+        # Obtener las tareas de la fecha seleccionada
+        dateStr = self.selectedDate.strftime("%Y-%m-%d")
+        tasks = self.tasksByDate.get(dateStr, [])  # Obtener tareas o una lista vacía
+
+        # Llenar el Listbox con las tareas del día
+        if tasks:
+            for task in tasks:
+                self.taskListbox.insert(tk.END, task)
+        else:
+            self.taskListbox.insert(tk.END, "No hay tareas para este día")
+
+    def openCalendar(self):
+        """Abre una ventana emergente con un calendario para seleccionar una fecha"""
+        calendarWindow = tk.Toplevel(self.root)
+        calendarWindow.title("Seleccionar fecha")
+        
+        # Crear el calendario
+        cal = Calendar(calendarWindow, selectmode="day", year=self.selectedDate.year,
+                    month=self.selectedDate.month, day=self.selectedDate.day)
+        cal.pack(pady=20)
+
+        def setDate():
+            """Establece la fecha seleccionada en el calendario"""
+            selected_date = cal.get_date()
+            self.selectedDate = datetime.datetime.strptime(selected_date, "%m/%d/%y").date()
+            self.dateLabel.config(text=f"Día seleccionado: {self.selectedDate}")
+            self.updateListbox()
+            calendarWindow.destroy()  # Cerrar la ventana del calendario
+
+        # Botón para confirmar la selección
+        ttk.Button(calendarWindow, text="Seleccionar", command=setDate).pack(pady=10)
+
+        # Botón para cerrar sin seleccionar
+        ttk.Button(calendarWindow, text="Cancelar", command=calendarWindow.destroy).pack(pady=10)
+
+
+# Crear la ventana principal
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = App(root)
+    root.mainloop()

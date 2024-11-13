@@ -86,6 +86,22 @@ class GestionTareas:
         """Filtra las tareas por estado ('pendiente' o 'completada')"""
         return {task_id: task for task_id, task in self.taskList.items() if task["estado"] == estado}
     
+    #FUNCIÓN PARA EDITAR TAREAS CONECTADA CON LA BASE DE DATOS
+    def editTask(self, task_id, task, category):
+        """Edita una tarea existente en la base de datos"""
+        query = """
+            UPDATE Tareas
+            SET Descripcion = ?, ID_Categoria = ?
+            WHERE ID_Tarea = ?
+        """
+        categoryID = self.CATEGORIAS.get(category, None)
+
+        if categoryID is not None:
+            parametros = (task, categoryID, task_id)
+            self.db.ejecutarComando(query, parametros)
+            self.syncDB()  # Sincronizar después de actualizar
+
+    
     #Función para contar la cantidad de tareas
     #def totalNumTask(self):
         #"""Cuenta el numero total de tareas"""
