@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
+import datetime
 from modeloRiseNotes import GestionTareas
 
 class InterfazRiseNotes:
@@ -15,6 +16,23 @@ class InterfazRiseNotes:
         #Creamos una etiqueta de bienvenida
         self.label = ttk.Label(self.window, text="Bienvenido a Rise Notes", font= ("Times New Roman", 16))
         self.label.pack(pady=10)
+
+        # Fecha actual seleccionada
+        self.selectedDate = datetime.date.today()
+
+        # Mostrar la fecha seleccionada
+        self.dateEtiqueta = ttk.Label(self.window, text=f"Día seleccionado: {self.selectedDate}", font=("Arial", 12))
+        self.dateEtiqueta.pack(pady=5)
+
+        # Botones para cambiar de día
+        btnDia = ttk.Frame(self.window)
+        btnDia.pack(pady=5)
+
+        self.prevDayButton = ttk.Button(btnDia, text="←", command=self.prevDay)
+        self.prevDayButton.pack(side=tk.LEFT, padx=5)
+
+        self.nextDayButton = ttk.Button(btnDia, text="→", command=self.nextDay)
+        self.nextDayButton.pack(side=tk.LEFT, padx=5)
 
         #Selección de categoría
         self.categoryLabel = ttk.Label(self.window, text="Seleccione una categoría:")
@@ -53,6 +71,26 @@ class InterfazRiseNotes:
 
 
     #FUNCIONALIDADES DE LOS ELEMENTOS VISUALES
+
+    #FUNCIÓN DIA ANTERIOR PREVDAY
+    def prevDay(self):
+        """Retrocede un día y actualiza la vista"""
+        self.selectedDate -= datetime.timedelta(days=1)
+        self.dateEtiqueta.config(text=f"Día seleccionado: {self.selectedDate}")
+        self.updateListbox()
+
+    #FUNCIÓN DÍA SIGUIENTE NEXTDAY
+    def nextDay(self):
+        """Avanza un día y actualiza la vista"""
+        self.selectedDate += datetime.timedelta(days=1)
+        self.dateEtiqueta.config(text=f"Día seleccionado: {self.selectedDate}")
+        self.updateListbox()
+    
+    #FUNCIÓN PARA ACTUALIZAR LISTBOX POR DIA
+    def updateListbox(self):
+        """Actualiza el Listbox con las tareas del día seleccionado"""
+        tasks = self.controlador.getTasksByDate(self.selectedDate.strftime("%Y-%m-%d"))
+        self.showTasks(tasks)
     
     #Función para que taskField reconozca la tecla Enter
     def enterPress(self, event):
@@ -64,14 +102,14 @@ class InterfazRiseNotes:
         """Función para agregar una tarea nueva"""
         task = self.taskField.get()
         category = self.categoryVar.get() #Ampliación con la categoria
-        date = "2024-11-11" #De momento agregamos esto de forma manual hasta implementar funcionalidad
+        date = self.selectedDate.strftime("%Y-%m-%d")  # Fecha seleccionada
 
         if task and category:
             #Agregar tarea a través de controlador
             self.controlador.addTask(task, category, date)
             self.taskField.delete(0, tk.END) #Limpiar el campo de texto para añadir nueva tarea
             self.categoryVar.set("")
-            print(f"Tarea agregada correctamente: {task}") #Solo muestra por consolan NO NECESARIO
+            self.updateListbox()  # Actualizar el Listbox con la nueva tarea
         
         else:
             messagebox.showwarning("Advertencia", "Debes ingresar una tarea y seleccionar una categoría")
@@ -79,7 +117,6 @@ class InterfazRiseNotes:
     #FUNCIÓN PARA MOSTRAR TAREAS
     def showTasks(self, tasks):
         """Actualiza la lista de tareas mostrada con formato"""
-        print("Tareas recibidas para mostrar en la vista:", tasks)  # Depuración
         self.taskListbox.delete(0, tk.END)
 
         for task_id, task in tasks.items():
@@ -90,7 +127,6 @@ class InterfazRiseNotes:
 
             # Insertar la tarea formateada en la lista
             self.taskListbox.insert(tk.END, formattedTask)
-
 
     #Función para eliminar una tarea
     def delTask(self):
@@ -104,8 +140,6 @@ class InterfazRiseNotes:
             self.controlador.delete(task_id)
         else:
             messagebox.showwarning("Advertencia", "Por favor, selecciona una tarea para eliminar")
-
-
 
     #Función para editar tarea junto con opción de boton cambiante a guardar
     def editTask(self):

@@ -38,6 +38,11 @@ class ControladorRiseNotes:
         self.modelo.completeTask(task_id)
         self.actualizarVista()
 
+    #FUNCIÓN PARA OBTENER LA TAREA DE X FECHA
+    def getTasksByDate(self, date):
+        """Devuelve las tareas de una fecha específica"""
+        return self.modelo.getTasksByDate(date)
+
     def filtrarTareas(self, estado):
         """Muestra solo tareas con un estado específico"""
         tasks = self.modelo.getTasksByState(estado)

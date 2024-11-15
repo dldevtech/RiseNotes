@@ -78,7 +78,6 @@ class GestionTareas:
     #FUNCIÓN PARA DEVOLVER TODAS LAS TAREAS
     def getAllTasks(self):
         """Devuelve todas las tareas"""
-        print("Contenido de taskList en getAllTasks:", self.taskList) #DEPURACION!!
         return self.taskList
     
     #FUNCIÓN PARA FILTRAR TAREAS POR ESTADO
@@ -100,6 +99,24 @@ class GestionTareas:
             parametros = (task, categoryID, task_id)
             self.db.ejecutarComando(query, parametros)
             self.syncDB()  # Sincronizar después de actualizar
+
+    #FUNCIÓN PARA OBTENER TAREA DE UN DIA ESPECIFICO
+    def getTasksByDate(self, date):
+        """Devuelve las tareas de una fecha específica"""
+        query = "SELECT * FROM Tareas WHERE Fecha = ?"
+        rows = self.db.ejecutarComando(query, (date,))
+    
+        idToCategory = {v: k for k, v in self.CATEGORIAS.items()}
+    
+        return {
+            str(row[0]): {
+                "task": row[3],
+                "category": idToCategory.get(row[2], "Desconocido"),
+                "date": row[4],
+                "estado": row[5]
+            }
+            for row in rows
+        }
 
     
     #Función para contar la cantidad de tareas
