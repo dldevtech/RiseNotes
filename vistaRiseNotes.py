@@ -90,6 +90,14 @@ class InterfazRiseNotes:
     def updateListbox(self):
         """Actualiza el Listbox con las tareas del día seleccionado"""
         tasks = self.controlador.getTasksByDate(self.selectedDate.strftime("%Y-%m-%d"))
+        self.taskListbox.delete(0, tk.END)
+        self.taskOfListbox = list(tasks.keys()) #Guardamos los IDs de las tareas del Listbox
+
+        for task_id, task in tasks.items():
+            estado = "[✔]" if task["estado"] == "completada" else "[ ]"
+            formattedTask = f"[{task['category']}] {task['task']} {estado}"
+            self.taskListbox.insert(tk.END, formattedTask)
+        
         self.showTasks(tasks)
     
     #Función para que taskField reconozca la tecla Enter
@@ -97,7 +105,17 @@ class InterfazRiseNotes:
         """Función para agregar tarea al presionar Enter en taskField"""
         self.addTask()
 
-    #Función para agregar tarea
+    #FUNCIÓN PARA OBTENER EL TASK ID DE LISTBOX
+    def getSelectedTaskID (self):
+        """Obtiene el ID de la tarea seleccionada en el Listbox"""
+        selectedIndex = self.taskListbox.curselection()
+        if selectedIndex:
+            return self.taskOfListbox[selectedIndex[0]]
+        
+        else:
+            return None
+
+    #FUNCIÓN PARA AGREGAR UNA TAREA
     def addTask(self):
         """Función para agregar una tarea nueva"""
         task = self.taskField.get()
@@ -123,44 +141,33 @@ class InterfazRiseNotes:
 
             # Formatear la fecha, categoría, descripción y estado
             estado = "[✔]" if task["estado"] == "completada" else "[ ]"
-            formattedTask = f"{task_id}: [{task['category']}] {task['task']} {estado}"
+            formattedTask = f"[{task['category']}] {task['task']} {estado}"
 
             # Insertar la tarea formateada en la lista
             self.taskListbox.insert(tk.END, formattedTask)
 
-    #Función para eliminar una tarea
+    #FUNCIÓN PARA ELIMINAR UNA TAREA
     def delTask(self):
-        """Función para eliminar una tarea seleccionada"""
-        #Obtener la tarea seleccionada
-        selectedIndex = self.taskListbox.curselection()
-
-        if selectedIndex:
-            selectedTask = self.taskListbox.get(selectedIndex)
-            task_id = selectedTask.split(":")[0]
+        """Elimina la tarea seleccionada"""
+        task_id = self.getSelectedTaskID()
+        if task_id:
             self.controlador.delete(task_id)
+            self.updateListbox()
         else:
-            messagebox.showwarning("Advertencia", "Por favor, selecciona una tarea para eliminar")
+            messagebox.showwarning("Advertencia", "Por favor, selecciona una tarea para eliminar.")
+
 
     #Función para editar tarea junto con opción de boton cambiante a guardar
     def editTask(self):
         """Función para editar la tarea seleccionada"""
-        indexTask = self.taskListbox.curselection()
-        if indexTask:
-            selectedTaskIndex = indexTask[0]
-            selectedTask = self.taskListbox.get(selectedTaskIndex)
-
-            #Separar la categoria y la descripcion ignorando el estado con función split
-            task_id, restoString = selectedTask.split(": ", 1)
-            category, restoString = restoString.split("] ", 1)
-            category = category[1:]
-            
-            #Separar la descripción de la tarea ignorando el estado
-            task = restoString.rsplit(" [", 1)[0] # Eliminamos el estado "[✔]" o "[ ]" rsplit para dividir desde la derecha
+        task_id = self.getSelectedTaskID()
+        if task_id:
+            task = self.controlador.modelo.getTask(task_id)
 
             #Insertar la tarea en el cuadro de texto para que el usuario la edite y la categoria
             self.taskField.delete(0, tk.END)
-            self.taskField.insert(0, task.strip()) #Strip nos asegura quitar espacios en blanco
-            self.categoryVar.set(category) #Aqui seteamos categoryVar para que coincida con lo que se seleccionó
+            self.taskField.insert(0, task["task"])
+            self.categoryVar.set(task["category"]) #Aqui seteamos categoryVar para que coincida con lo que se seleccionó
 
             #Función interna para guardar los cambios
             def saveChange():
@@ -171,8 +178,7 @@ class InterfazRiseNotes:
                 #Llamamos al controlador para actualizar la tarea
                     self.controlador.editar(task_id, editedTask, editedCategory)
                     self.addButtom.config(text="Agregar Tarea", command=self.addTask)
-                    self.taskField.delete(0, tk.END)
-                    self.categoryVar.set("")
+                    self.updateListbox()
 
             #cambiar el botón "Agregar tarea" por "Guardar cambios"
             self.addButtom.config(text="Guardar cambios", command=saveChange) #ese addTask tendra que ser sustituido cuando conectemos a db
@@ -182,11 +188,11 @@ class InterfazRiseNotes:
 
     #FUNCIÓN PARA MARCAR TAREA COMPLETADA
     def completeTask(self):
-        """Función para establecer una tarea como completada"""
-        selected_index = self.taskListbox.curselection()
-        if selected_index:
-            selected_task = self.taskListbox.get(selected_index)
-            task_id = selected_task.split(":")[0]
+        """Marca una tarea como completada"""
+        task_id = self.getSelectedTaskID()
+        if task_id:
             self.controlador.completeTask(task_id)
+            self.updateListbox()
         else:
-            messagebox.showwarning("Advertencia", "Por favor, selecciona una tarea para marcar como completada")
+            messagebox.showwarning("Advertencia", "Por favor, selecciona una tarea para marcar como completada.")
+

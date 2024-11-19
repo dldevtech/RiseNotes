@@ -35,7 +35,6 @@ class GestionTareas:
 
             for row in rows
         }
-        print("Sincronizado taskList:", self.taskList)  # Imprime las tareas cargadas desde la base de datos
 
 
     #FUNCIÓN QUE AÑADE TAREAS A LA BASE DE DATOS
@@ -58,8 +57,7 @@ class GestionTareas:
     def delTask(self, task_id):
         """Elimina una tarea de la Base de Datos"""
         query = "DELETE FROM Tareas WHERE ID_Tarea = ?"
-        parametros = (task_id,)
-        self.db.ejecutarComando(query, parametros)
+        self.db.ejecutarComando(query, (task_id,))
         self.syncDB()
 
     #FUNCIÓN PARA OBTENER LISTA DE TAREAS
@@ -71,8 +69,7 @@ class GestionTareas:
     def completeTask (self, task_id):
         """Marca como completada una tarea y cambia su estado en la base de datos"""
         query = "UPDATE Tareas SET Estado = 'completada' WHERE ID_Tarea = ?"
-        parametros = (task_id,)
-        self.db.ejecutarComando(query, parametros)
+        self.db.ejecutarComando(query, (task_id,))
         self.syncDB()
 
     #FUNCIÓN PARA DEVOLVER TODAS LAS TAREAS
@@ -88,17 +85,11 @@ class GestionTareas:
     #FUNCIÓN PARA EDITAR TAREAS CONECTADA CON LA BASE DE DATOS
     def editTask(self, task_id, task, category):
         """Edita una tarea existente en la base de datos"""
-        query = """
-            UPDATE Tareas
-            SET Descripcion = ?, ID_Categoria = ?
-            WHERE ID_Tarea = ?
-        """
         categoryID = self.CATEGORIAS.get(category, None)
-
-        if categoryID is not None:
-            parametros = (task, categoryID, task_id)
-            self.db.ejecutarComando(query, parametros)
-            self.syncDB()  # Sincronizar después de actualizar
+        if categoryID:
+            query = "UPDATE Tareas SET Descripcion = ?, ID_Categoria = ? WHERE ID_Tarea = ?"
+            self.db.ejecutarComando(query, (task, categoryID, task_id))
+            self.syncDB()
 
     #FUNCIÓN PARA OBTENER TAREA DE UN DIA ESPECIFICO
     def getTasksByDate(self, date):

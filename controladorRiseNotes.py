@@ -25,12 +25,13 @@ class ControladorRiseNotes:
         self.modelo.delTask(task_id)
         self.actualizarVista()
 
+    #FUNCIÓN PARA OBTENER EL TASKID DE UNA TAREA
+ 
     #FUNCIÓN PARA EDITAR TAREA A TRAVÉS DEL MODELO
     def editar(self, task_id, task, category):
         """Edita una tarea existente en el modelo y actualiza la vista"""
-        if task_id in self.modelo.taskList:
-            self.modelo.editTask(task_id, task, category)
-            self.actualizarVista()
+        self.modelo.editTask(task_id, task, category)
+        self.actualizarVista()
 
     #FUNCIÓN PARA COMPLETAR TAREA EN EL CONTROLADOR
     def completeTask(self, task_id):
