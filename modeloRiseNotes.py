@@ -7,51 +7,58 @@ class GestionTareas:
         self.taskList = {} #Cache de tareas en memoria que va a ser sincronizado con la base de datos
         ##self.taskCounter = 0 #Agregamos contador de tareas para que cada una tenga una ID DESPUÉS DE AGREGAR BASE DE DATOS NO ES NECESARIO
         
-        #Definicion diccionario de categorias para asignar id a cada categoria y enlazarlo a la base de datos
-        self.CATEGORIAS ={
-            "Mente": 1,
-            "Cuerpo": 2,
-            "Espíritu":3
-        }
         
         self.syncDB() #Sincronización con la base de datos y el diccionario de tareas
 
     #FUNCION PARA SINCRONIZAR DICCIONARIO Y BASE DE DATOS
     def syncDB(self):
         """Sincroniza el diccionario con las tareas almacenadas en la base de datos"""
-        query = "SELECT * FROM Tareas"
+        query = """SELECT Tareas.ID_Tarea, 
+                        Tareas.Descripcion, 
+                        Categorias.catNombre,
+                        Tareas.Fecha,
+                        Tareas.Estado
+                        FROM Tareas JOIN Categorias 
+                        WHERE Tareas.ID_Categoria = Categorias.ID_Categoria
+                    """
         rows = self.db.ejecutarComando(query)
 
-        #Para obtener de forma inversa el id y transformarlo en una categoría:
-        idToCategory = {v: k for k, v in self.CATEGORIAS.items()}
+
 
         self.taskList = {
             str(row[0]): {
-                "task": row[3], 
-                "category": idToCategory.get(row[2], "Desconocido"), 
-                "date": row[4], 
-                "estado": row[5]
+                "task": row[1], 
+                "category": row[2], 
+                "date": row[3], 
+                "estado": row[4]
             }
 
             for row in rows
         }
 
+    #FUNCIÓN PARA MAPEAR IDCATEGORIA Y USARLO EN LA LOGICA
+    def getCategoryID(self, catNombre):
+        """Devuelve el ID de una categoría a partir de su nombre"""
+        query = "SELECT ID_Categoria FROM Categorias WHERE catNombre = ?"
+        result = self.db.ejecutarComando(query, (catNombre,))
+        return result[0][0] if result else None
 
     #FUNCIÓN QUE AÑADE TAREAS A LA BASE DE DATOS
     def addTask(self, task, category, date):
-        """Registra una tarea nueva en la base de datos"""
-        query = """
-            INSERT INTO Tareas (ID_Usuario, ID_Categoria, Descripcion, Fecha, Estado)
-            VALUES (?,?,?,?,?)
-        """
-        categoryID = self.CATEGORIAS.get(category, None)
+        """Registra una tarea nueva en la base de datos."""
+        categoryID = self.getCategoryID(category)
         if categoryID is not None:
-
+            query = """
+                INSERT INTO Tareas (ID_Usuario, ID_Categoria, Descripcion, Fecha, Estado)
+                VALUES (?,?,?,?,?)
+            """
             parametros = (1, categoryID, task, date, "pendiente")
             self.db.ejecutarComando(query, parametros)
             self.syncDB()
         else:
-            print(f"Categoría inválida: {category}")
+            raise ValueError(f"Categoría inválida: {category}")
+
+
 
     #FUNCIÓN PARA ELIMINAR TAREA DE LA BASE DE DATOS
     def delTask(self, task_id):
@@ -85,7 +92,7 @@ class GestionTareas:
     #FUNCIÓN PARA EDITAR TAREAS CONECTADA CON LA BASE DE DATOS
     def editTask(self, task_id, task, category):
         """Edita una tarea existente en la base de datos"""
-        categoryID = self.CATEGORIAS.get(category, None)
+        categoryID = self.getCategoryID(category)
         if categoryID:
             query = "UPDATE Tareas SET Descripcion = ?, ID_Categoria = ? WHERE ID_Tarea = ?"
             self.db.ejecutarComando(query, (task, categoryID, task_id))
@@ -94,17 +101,24 @@ class GestionTareas:
     #FUNCIÓN PARA OBTENER TAREA DE UN DIA ESPECIFICO
     def getTasksByDate(self, date):
         """Devuelve las tareas de una fecha específica"""
-        query = "SELECT * FROM Tareas WHERE Fecha = ?"
+        query = """SELECT Tareas.ID_Tarea, 
+                        Tareas.Descripcion, 
+                        Categorias.catNombre,
+                        Tareas.Fecha,
+                        Tareas.Estado
+                        FROM Tareas JOIN Categorias 
+                        WHERE Tareas.ID_Categoria = Categorias.ID_Categoria
+                        AND Tareas.Fecha = ?
+                    """
         rows = self.db.ejecutarComando(query, (date,))
     
-        idToCategory = {v: k for k, v in self.CATEGORIAS.items()}
     
         return {
             str(row[0]): {
-                "task": row[3],
-                "category": idToCategory.get(row[2], "Desconocido"),
-                "date": row[4],
-                "estado": row[5]
+                "task": row[1],
+                "category": row[2],
+                "date": row[3],
+                "estado": row[4]
             }
             for row in rows
         }

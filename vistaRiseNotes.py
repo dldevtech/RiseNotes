@@ -1,7 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 import datetime
-from modeloRiseNotes import GestionTareas
 
 class InterfazRiseNotes:
     def __init__(self, window, controlador):
@@ -170,7 +169,7 @@ class InterfazRiseNotes:
             self.categoryVar.set(task["category"]) #Aqui seteamos categoryVar para que coincida con lo que se seleccionó
 
             #Función interna para guardar los cambios
-            def saveChange():
+            def saveChange(event= None):
                 editedTask = self.taskField.get()
                 editedCategory = self.categoryVar.get()
 

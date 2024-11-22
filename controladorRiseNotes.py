@@ -1,5 +1,6 @@
 from modeloRiseNotes import GestionTareas  # Importa el modelo
 from vistaRiseNotes import InterfazRiseNotes  # Importa la vista
+from datetime import datetime
 
 class ControladorRiseNotes:
     def __init__(self, vista: InterfazRiseNotes, modelo: GestionTareas):
@@ -11,7 +12,8 @@ class ControladorRiseNotes:
 
     def actualizarVista(self):
         """Carga todas las tareas del modelo y las muestra en la vista"""
-        tasks = self.modelo.getAllTasks()
+        today = datetime.now().strftime('%Y-%m-%d')
+        tasks = self.modelo.getTasksByDate(today)
         print("Tareas enviadas a la vista:", tasks)
         self.vista.showTasks(tasks)
 

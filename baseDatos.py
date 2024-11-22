@@ -24,9 +24,21 @@ class BaseDatos:
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS Categorias (
                 ID_Categoria INTEGER PRIMARY KEY AUTOINCREMENT,
-                Nombre_Categoria TEXT NOT NULL
+                catNombre TEXT NOT NULL
             )
         """)
+
+        # Insertar categorías iniciales si no existen
+        Categorias = [
+            (1, "Mente"),
+            (2, "Cuerpo"),
+            (3, "Espiritu")
+        ]
+        
+        self.cursor.executemany("""
+            INSERT OR IGNORE INTO Categorias (ID_Categoria, catNombre) 
+            VALUES (?, ?)
+        """, Categorias)
 
         #Tabla Tareas
         self.cursor.execute("""
