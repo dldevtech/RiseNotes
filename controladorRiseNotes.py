@@ -7,6 +7,7 @@ class ControladorRiseNotes:
         self.vista = vista
         self.modelo = modelo
         self.vista.controlador = self
+        self.vista.updateListbox()
         self.actualizarVista()
 
     def actualizarVista(self):

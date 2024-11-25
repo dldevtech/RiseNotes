@@ -57,6 +57,15 @@ class InterfazRiseNotes:
         self.taskListbox = tk.Listbox(self.window, width=50)
         self.taskListbox.pack(pady=10)
 
+        #Etiquetas de la Barra de progreso
+        #BARRA DE PROGRESO
+        self.progress = ttk.Progressbar(self.window, orient="horizontal", length=300, mode="determinate")
+        self.progress.pack(pady=10)
+
+        # Etiqueta para mostrar el porcentaje
+        self.progressLabel = ttk.Label(self.window, text="Progreso Diario: 0%")
+        self.progressLabel.pack(pady=5)
+
         #Botón para eliminar la tarea
         self.delButton = ttk.Button(self.window, text="Eliminar Tarea", command = self.delTask)
         self.delButton.pack(pady=5)
@@ -100,6 +109,7 @@ class InterfazRiseNotes:
             self.taskListbox.insert(tk.END, formattedTask)
         
         self.showTasks(tasks)
+        self.updateProgressBar() #Refrescar barra progreso cada vez que actualizamos el Listbox
     
     #Función para que taskField reconozca la tecla Enter
     def enterPress(self, event):
@@ -200,4 +210,31 @@ class InterfazRiseNotes:
             self.updateListbox()
         else:
             messagebox.showwarning("Advertencia", "Por favor, selecciona una tarea para marcar como completada.")
+
+    #FUNCIÓN BARRA DE PROGRESO
+    def updateProgressBar(self):
+        """Calcula y actualiza la barra de progreso diaria"""
+
+        if not self.controlador: #Depuración para comprobar si se inicializa el controlador
+            self.progress ['value'] = 0
+            self.progressLabel.config(text="Progreso Diario: 0%")
+            return
+        
+        tasks = self.controlador.getTasksByDate(self.selectedDate.strftime("%Y-%m-%d"))
+    
+        categories = ["Mente", "Cuerpo", "Espíritu"]
+        requirementTasks = 2
+        completedTask = 0
+
+        for category in categories:
+            # Contar tareas completadas en la categoría
+            completed = sum(1 for task in tasks.values() if task["category"] == category and task["estado"] == "completada")
+            completedTask += min(completed, requirementTasks)  # Contar hasta el máximo requerido
+
+        totalRequirement = len(categories) * requirementTasks  # Total de tareas necesarias para 100%
+        progressDiary = (completedTask / totalRequirement) * 100 if totalRequirement > 0 else 0
+
+        # Actualizar la barra de progreso y la etiqueta
+        self.progress['value'] = progressDiary
+        self.progressLabel.config(text=f"Progreso Diario: {progressDiary:.0f}%")
 
