@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 import datetime
+from modeloRiseNotes import GestionTareas
 
 class InterfazRiseNotes:
     def __init__(self, window, controlador):
@@ -69,6 +70,7 @@ class InterfazRiseNotes:
         self.completeButton.pack(pady=5)
 
 
+
     #FUNCIONALIDADES DE LOS ELEMENTOS VISUALES
 
     #FUNCIÓN DIA ANTERIOR PREVDAY
@@ -108,6 +110,8 @@ class InterfazRiseNotes:
     def getSelectedTaskID (self):
         """Obtiene el ID de la tarea seleccionada en el Listbox"""
         selectedIndex = self.taskListbox.curselection()
+        print(selectedIndex) #DEPURACION
+        print(self.taskOfListbox)
         if selectedIndex:
             return self.taskOfListbox[selectedIndex[0]]
         
@@ -169,7 +173,7 @@ class InterfazRiseNotes:
             self.categoryVar.set(task["category"]) #Aqui seteamos categoryVar para que coincida con lo que se seleccionó
 
             #Función interna para guardar los cambios
-            def saveChange(event= None):
+            def saveChange(event=None):
                 editedTask = self.taskField.get()
                 editedCategory = self.categoryVar.get()
 
@@ -177,6 +181,8 @@ class InterfazRiseNotes:
                 #Llamamos al controlador para actualizar la tarea
                     self.controlador.editar(task_id, editedTask, editedCategory)
                     self.addButtom.config(text="Agregar Tarea", command=self.addTask)
+                    self.taskField.delete(0, tk.END)
+                    self.categoryVar.set("")
                     self.updateListbox()
 
             #cambiar el botón "Agregar tarea" por "Guardar cambios"
