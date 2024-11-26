@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 import datetime
+from tkcalendar import Calendar
 from modeloRiseNotes import GestionTareas
 
 class InterfazRiseNotes:
@@ -21,7 +22,7 @@ class InterfazRiseNotes:
         self.selectedDate = datetime.date.today()
 
         # Mostrar la fecha seleccionada
-        self.dateEtiqueta = ttk.Label(self.window, text=f"Día seleccionado: {self.selectedDate}", font=("Arial", 12))
+        self.dateEtiqueta = ttk.Label(self.window, text=f"{self.formatDate(self.selectedDate)}", font=("Arial", 12))
         self.dateEtiqueta.pack(pady=5)
 
         # Botones para cambiar de día
@@ -30,6 +31,15 @@ class InterfazRiseNotes:
 
         self.prevDayButton = ttk.Button(btnDia, text="←", command=self.prevDay)
         self.prevDayButton.pack(side=tk.LEFT, padx=5)
+
+        #WIDGET DIA ESPECIFICO
+        # Botón para abrir el selector de fecha
+        self.selectDateButton = ttk.Button(
+            btnDia, 
+            text="Ir a Fecha", 
+            command=self.openDateSelector
+        )
+        self.selectDateButton.pack(side=tk.LEFT, padx=5)
 
         self.nextDayButton = ttk.Button(btnDia, text="→", command=self.nextDay)
         self.nextDayButton.pack(side=tk.LEFT, padx=5)
@@ -82,18 +92,51 @@ class InterfazRiseNotes:
 
     #FUNCIONALIDADES DE LOS ELEMENTOS VISUALES
 
+    #FUNCIÓN PARA WIDGET DE DIA ESPECÍFICO
+    def openDateSelector(self):
+        """Abre una ventana emergente para seleccionar una fecha"""
+        def selectDate():
+            """Toma la fecha seleccionada del calendario y actualiza la fecha principal"""
+            selectedDateStr = cal.get_date()  # Esto devuelve un string
+            self.selectedDate = datetime.datetime.strptime(selectedDateStr, "%Y-%m-%d").date()
+            self.dateEtiqueta.config(text=f"{self.formatDate(self.selectedDate)}")
+            self.updateListbox()  # Actualiza la lista de tareas
+            top.destroy()  # Cierra la ventana emergente
+
+        # Crear una ventana emergente
+        top = tk.Toplevel(self.window)
+        top.title("Seleccionar Fecha")
+        top.geometry("300x300")
+        top.resizable(False, False)
+
+        # Calendario en la ventana emergente
+        cal = Calendar(
+            top,
+            selectmode="day",
+            year=self.selectedDate.year,
+            month=self.selectedDate.month,
+            day=self.selectedDate.day,
+            date_pattern="yyyy-MM-dd",
+            locale = "es"
+        )
+        cal.pack(pady=20)
+
+        # Botón para confirmar la selección de fecha
+        selectButton = ttk.Button(top, text="Seleccionar", command=selectDate)
+        selectButton.pack(pady=10)
+
     #FUNCIÓN DIA ANTERIOR PREVDAY
     def prevDay(self):
         """Retrocede un día y actualiza la vista"""
         self.selectedDate -= datetime.timedelta(days=1)
-        self.dateEtiqueta.config(text=f"Día seleccionado: {self.selectedDate}")
+        self.dateEtiqueta.config(text=f"{self.formatDate(self.selectedDate)}")
         self.updateListbox()
 
     #FUNCIÓN DÍA SIGUIENTE NEXTDAY
     def nextDay(self):
         """Avanza un día y actualiza la vista"""
         self.selectedDate += datetime.timedelta(days=1)
-        self.dateEtiqueta.config(text=f"Día seleccionado: {self.selectedDate}")
+        self.dateEtiqueta.config(text=f"{self.formatDate(self.selectedDate)}")
         self.updateListbox()
     
     #FUNCIÓN PARA ACTUALIZAR LISTBOX POR DIA
@@ -237,4 +280,17 @@ class InterfazRiseNotes:
         # Actualizar la barra de progreso y la etiqueta
         self.progress['value'] = progressDiary
         self.progressLabel.config(text=f"Progreso Diario: {progressDiary:.0f}%")
-
+    def formatDate (self, date):
+        """Devuelve la fecha en formato 'Lunes, 30-11-2024' con el día traducido al español"""
+        weekDays = {
+            "Monday": "Lunes",
+            "Tuesday": "Martes",
+            "Wednesday": "Miércoles",
+            "Thursday": "Jueves",
+            "Friday": "Viernes",
+            "Saturday": "Sábado",
+            "Sunday": "Domingo"
+        }
+        
+        weekDays = weekDays[date.strftime('%A')]  # Traduce el día de la semana
+        return f"{weekDays}, {date.strftime('%d-%m-%Y')}"  # Devuelve el día traducido con la fecha
