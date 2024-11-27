@@ -2,59 +2,67 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import datetime
 from tkcalendar import Calendar
-from modeloRiseNotes import GestionTareas
 
 class InterfazRiseNotes:
     def __init__(self, window, controlador):
         """Inicializa la interfaz gráfica""" #Usamos estas marcas de cara al documentar el propio código
         self.window = window
         self.controlador = controlador #Referencia al controlador para poder manejar los eventos
+        self.window.configure(bg="#2b2b2b")
         self.window.title("RiseNotes - Gestor de Tareas")
 
-        #"""Inicialización de la clase GestorTareas""" LO HEMOS QUITADO AL PASAR A MVC
-        #self.taskManager = GestionTareas()
+        # ESTILOS PARA MEJORAR INTERFAZ
+        self.style = ttk.Style()
+        self.style.theme_use("clam")
+        self.style.configure("TLabel", background="#2b2b2b", foreground="#f0f0f0", font=("San Francisco", 12))
+        self.style.configure("TButton", background="#444444", foreground="#f0f0f0", font=("San Francisco", 10), padding=5)
+        self.style.configure("Accent.TButton", background="#0078D7", foreground="#ffffff", font=("San Francisco", 10, "bold"))
+        self.style.map("TButton", background=[("active", "#555555")], foreground=[("active", "#f0f0f0")])
+        self.style.configure("TCombobox", fieldbackground="#2b2b2b", foreground="#gray10", arrowcolor="#f0f0f0")
+        self.style.configure("TProgressbar", troughcolor="#444444", background="#0078D7")
 
         #Creamos una etiqueta de bienvenida
-        self.label = ttk.Label(self.window, text="Bienvenido a Rise Notes", font= ("Times New Roman", 16))
+        self.label = ttk.Label(self.window, text="Bienvenido a Rise Notes", style="TLabel", font= ("San Francisco", 18, "bold"))
         self.label.pack(pady=10)
 
         # Fecha actual seleccionada
         self.selectedDate = datetime.date.today()
 
         # Mostrar la fecha seleccionada
-        self.dateEtiqueta = ttk.Label(self.window, text=f"{self.formatDate(self.selectedDate)}", font=("Arial", 12))
+        self.dateEtiqueta = ttk.Label(self.window, text=f"{self.formatDate(self.selectedDate)}", font=("San Francisco", 12), style="TLabel")
         self.dateEtiqueta.pack(pady=5)
 
         # Botones para cambiar de día
-        btnDia = ttk.Frame(self.window)
+        btnDia = ttk.Frame(self.window, style="TButton")
         btnDia.pack(pady=5)
 
-        self.prevDayButton = ttk.Button(btnDia, text="←", command=self.prevDay)
+        self.prevDayButton = ttk.Button(btnDia, text="←",  style="TButton", command=self.prevDay)
         self.prevDayButton.pack(side=tk.LEFT, padx=5)
 
         #WIDGET DIA ESPECIFICO
         # Botón para abrir el selector de fecha
         self.selectDateButton = ttk.Button(
-            btnDia, 
+            btnDia,  
+            style="TButton",
             text="Ir a Fecha", 
             command=self.openDateSelector
         )
         self.selectDateButton.pack(side=tk.LEFT, padx=5)
 
-        self.nextDayButton = ttk.Button(btnDia, text="→", command=self.nextDay)
+        self.nextDayButton = ttk.Button(btnDia, text="→", style="TButton", command=self.nextDay)
         self.nextDayButton.pack(side=tk.LEFT, padx=5)
 
         #Selección de categoría
-        self.categoryLabel = ttk.Label(self.window, text="Seleccione una categoría:")
+        self.categoryLabel = ttk.Label(self.window, text="Seleccione una categoría:", style="TLabel")
         self.categoryLabel.pack(pady=5)
         #Menú desplegable para seleccionar la categoría
         self.categoryVar = tk.StringVar()
-        self.categoryMenu = ttk.Combobox(self.window, textvariable = self.categoryVar)
+        self.categoryMenu = ttk.Combobox(self.window, textvariable = self.categoryVar, state="readonly", style="TCombobox")
         self.categoryMenu['values'] = ("Mente", "Cuerpo", "Espíritu") #Categorías principales en RiseNotes
         self.categoryMenu.pack(pady=5)
 
         #Entrada para la nueva actividad
-        self.taskField = ttk.Entry(self.window, width=50)
+        self.taskField = ttk.Entry(self.window, font=("San Francisco", 10))
         self.taskField.pack(pady=5)
         #Funcion para que la tecla Enter registre la tarea
         self.taskField.bind("<Return>", self.enterPress)
@@ -64,28 +72,28 @@ class InterfazRiseNotes:
         self.addButtom.pack(pady=5)
 
         #Lista para mostrar las tareas agregadas
-        self.taskListbox = tk.Listbox(self.window, width=50)
+        self.taskListbox = tk.Listbox(self.window, width=50, height=10, bg="#444444", fg="#f0f0f0", font=("Helvetica", 10), highlightbackground="#555555", highlightthickness=1)
         self.taskListbox.pack(pady=10)
 
         #Etiquetas de la Barra de progreso
         #BARRA DE PROGRESO
-        self.progress = ttk.Progressbar(self.window, orient="horizontal", length=300, mode="determinate")
+        self.progress = ttk.Progressbar(self.window, orient="horizontal", length=400, mode="determinate", style="TProgressbar")
         self.progress.pack(pady=10)
 
         # Etiqueta para mostrar el porcentaje
-        self.progressLabel = ttk.Label(self.window, text="Progreso Diario: 0%")
+        self.progressLabel = ttk.Label(self.window, text="Progreso Diario: 0%", style="TLabel")
         self.progressLabel.pack(pady=5)
 
         #Botón para eliminar la tarea
-        self.delButton = ttk.Button(self.window, text="Eliminar Tarea", command = self.delTask)
+        self.delButton = ttk.Button(self.window, text="Eliminar Tarea", style="TButton", command = self.delTask)
         self.delButton.pack(pady=5)
 
         #Botón para eliminar la tarea
-        self.editButton = ttk.Button(self.window, text="Editar Tarea", command = self.editTask)
+        self.editButton = ttk.Button(self.window, text="Editar Tarea", style="TButton", command = self.editTask)
         self.editButton.pack(pady=5)
 
         #Botón para completar tarea
-        self.completeButton = ttk.Button(self.window, text="Marcar como Completada", command=self.completeTask)
+        self.completeButton = ttk.Button(self.window, text="Marcar como Completada", style="TButton", command=self.completeTask)
         self.completeButton.pack(pady=5)
 
 
