@@ -15,8 +15,7 @@ class BaseDatos:
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS Usuarios (
                 ID_Usuario INTEGER PRIMARY KEY AUTOINCREMENT,
-                Nombre TEXT NOT NULL,
-                Fecha_Creacion TEXT NOT NULL
+                Nombre TEXT NOT NULL
             )
         """)
 
@@ -39,6 +38,13 @@ class BaseDatos:
             INSERT OR IGNORE INTO Categorias (ID_Categoria, catNombre) 
             VALUES (?, ?)
         """, Categorias)
+
+        
+        self.cursor.execute("""
+            INSERT OR IGNORE INTO Usuarios (ID_Usuario, Nombre) 
+            VALUES (1, 'UsuarioLocal')
+        """)
+        self.connection.commit()
 
         #Tabla Tareas
         self.cursor.execute("""

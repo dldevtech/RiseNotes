@@ -76,6 +76,11 @@ class InterfazRiseNotes:
         self.taskListbox.pack(pady=10)
 
         #Etiquetas de la Barra de progreso
+
+        #Etiqueta explicativa con los criterios
+        self.categoryLabel = ttk.Label(self.window, text="100% = 2 Mente, 2 Cuerpo y 2 Espíritu", style="TLabel")
+        self.categoryLabel.pack(pady=5)
+        
         #BARRA DE PROGRESO
         self.progress = ttk.Progressbar(self.window, orient="horizontal", length=400, mode="determinate", style="TProgressbar")
         self.progress.pack(pady=10)
@@ -162,7 +167,7 @@ class InterfazRiseNotes:
         self.showTasks(tasks)
         self.updateProgressBar() #Refrescar barra progreso cada vez que actualizamos el Listbox
     
-    #Función para que taskField reconozca la tecla Enter
+    #FUNCIÓN PARA EL RECONOCIMIENTO DE EL BOTÓN ENTER
     def enterPress(self, event):
         """Función para agregar tarea al presionar Enter en taskField"""
         self.addTask()
@@ -221,7 +226,7 @@ class InterfazRiseNotes:
             messagebox.showwarning("Advertencia", "Por favor, selecciona una tarea para eliminar.")
 
 
-    #Función para editar tarea junto con opción de boton cambiante a guardar
+    #FUNCIÓN EDITAR TAREA Y BOTÓN CAMBIANTE A GUARDAR CAMBIOS
     def editTask(self):
         """Función para editar la tarea seleccionada"""
         task_id = self.getSelectedTaskID()

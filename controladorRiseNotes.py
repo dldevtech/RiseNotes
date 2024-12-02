@@ -45,9 +45,4 @@ class ControladorRiseNotes:
         """Devuelve las tareas de una fecha específica"""
         return self.modelo.getTasksByDate(date)
 
-    def filtrarTareas(self, estado):
-        """Muestra solo tareas con un estado específico"""
-        tasks = self.modelo.getTasksByState(estado)
-        self.vista.showTasks(tasks)
-
 
