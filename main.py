@@ -1,16 +1,18 @@
-#parte principal que va lanzar la aplicación
-from apariencia import InterfazRiseNotes
-import tkinter as tk #Añadimos tkinter ocn nombre mas pequeño para eficiencia en el código
+import tkinter as tk
+from modeloRiseNotes import GestionTareas
+from vistaRiseNotes import InterfazRiseNotes
+from controladorRiseNotes import ControladorRiseNotes
 
-#Punto de entrada de la aplicación
 if __name__ == "__main__":
-#Creamos una ventana raíz de Tkinter donde se va a almacenar lo diseñado en apariencia
+    # Crear la ventana principal
     root = tk.Tk()
 
-    #Creamos una instancia para la interfaz
-    app = InterfazRiseNotes(root)
+    # Crear las instancias de Modelo y Vista
+    modelo = GestionTareas()
+    vista = InterfazRiseNotes(root, None)  # Inicialmente sin controlador
 
-    #Ejecutamos el bucle principal de Tkinter
+    # Crear la instancia del Controlador y vincularlo con la Vista y el Modelo
+    controlador = ControladorRiseNotes(vista, modelo)
+
+    # Ejecutar la aplicación
     root.mainloop()
-    ###ME HE QUEDADO EN LA PARTE EN LA QUE HE AÑADIDO EL MENU DE CATEGORIA PERO QUE NO SE PUEDE EDITAR, ESE ES EL SIGUIENTE PASO
-    
