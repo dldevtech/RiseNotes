@@ -44,7 +44,7 @@ ___
 
 ### Uso de la aplicación
 
-- Podemos navegar entre dias con las flechas de la aplicación o seleccionar un dia concreto con el selector.
+- Podemos navegar entre días con las flechas de la aplicación o seleccionar un día concreto con el selector.
 - Después seleccionamos una categoría, si no se selecciona ninguna salta error indicándolo.
 - Describimos la tarea y presionamos botón de agregar o presionamos enter.
 - La barra se actualiza dependiendo del número de tareas completadas hasta llegar al 100% que son 2 de cada categoría.
